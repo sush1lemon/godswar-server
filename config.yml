@@ -1,0 +1,19 @@
+# LoginServer
+server:
+  host: '127.0.0.1'
+  port: '5999'
+  type: 'tcp'
+
+# GameServer
+gameserver:
+  host: '127.0.0.1'
+  port: '7000'
+  type: 'tcp'
+
+# MYSQL
+database:
+  host: '127.0.0.1'
+  port: '3306'
+  user: 'root'
+  password: ''
+  database: 'godswar'

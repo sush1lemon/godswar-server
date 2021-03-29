@@ -1,1 +1,2 @@
-# godswar-server
+# GodsWar Online Server
+
