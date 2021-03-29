@@ -10,7 +10,7 @@ import (
 	"net"
 )
 
-const MAX_BUFFER = 8192
+const MaxBuffer = 8192
 var hashPointer = 0
 
 type network struct {
@@ -20,7 +20,7 @@ type network struct {
 type Network interface {
 	HandleConnection()
 	Disconnect()
-	Send([]byte)
+	Send([]byte, *int)
 }
 
 func NewNetwork(conn net.Conn) Network  {
@@ -32,34 +32,35 @@ func (n network) Disconnect() {
 	n.conn.Close()
 }
 
-func (n network) Send(m []byte) {
-	n.conn.Write(decode.Crypt(m))
+func (n network) Send(m []byte, hashPointer *int) {
+	logger.BasicLog("Sending data to client")
+	fmt.Println(hex.Dump(m))
+	n.conn.Write(decode.Crypt(m, hashPointer))
 }
 
 func (n network) HandleConnection()  {
 	// Make a buffer to hold incoming data.
 	logger.BasicLog("Client Connected")
 	defer n.Disconnect()
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, MaxBuffer)
 
 	hashPointer := 0
+	sentHashPointer := 0
 	for {
 		/*
 			BUFF COUNT = PACKET LEN = RECV DATA
 		 */
-		reader := bufio.NewReaderSize(n.conn, MAX_BUFFER)
+		reader := bufio.NewReaderSize(n.conn, MaxBuffer)
 		packet, err := decode.NewDecoder(reader, buffer, &hashPointer)
 		if err != nil {
 			n.Disconnect()
 			break
 		}
 
-		if packet.Len == 0 || packet.Len > MAX_BUFFER {
+		if packet.Len == 0 || packet.Len > MaxBuffer {
 			n.Disconnect()
 			break
 		}
-
-		fmt.Println(buffer[0:10])
 
 		logger.BasicLog("OPCode:", packet.OPCode)
 		logger.BasicLog("Buff Count:", packet.Len)
@@ -74,7 +75,9 @@ func (n network) HandleConnection()  {
 				n.Disconnect()
 			}
 
-			n.Send(res)
+			if res != nil {
+				n.Send(res, &sentHashPointer)
+			}
 		}
 	}
 }

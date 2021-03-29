@@ -6,9 +6,8 @@ const (
 
 	//client<->login server
 	MSG_LOGIN              = 1
-	MSG_INVALID_LOGIN      = 3
-	MSG_SELECT_SERVER      = 4
-	MSG_LOGIN_RETURN_INFO  //µÇÂ½·þÎñÆ÷·µ»Ø
+	MSG_SELECT_SERVER      = 4 // ,...sush 1lemon..
+	MSG_LOGIN_RETURN_INFO  = 6 // \...sush 1lemon.. | 0x5c 00 06
 	MSG_REQUEST_GAMESERVER //ÇëÇóÓÎÏ··þÎñÆ÷
 
 	//loginserver<--->gamereserser

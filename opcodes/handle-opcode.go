@@ -39,6 +39,8 @@ func (h handler) HandleOPCode() ([]byte, error) {
 		return packets.SERVER_LIST, nil
 	case MSG_SELECT_SERVER:
 		return packets.SEND_SERVER, nil
+	case MSG_LOGIN_RETURN_INFO:
+		return nil, nil
 	default:
 		logger.BasicLog("Invalid OPCode:", h.decoded.OPCode)
 		logger.BasicLog("Buff Count:", h.decoded.Len)

@@ -84,12 +84,12 @@ func crypt(packet []byte, hashPointer *int) {
 	}
 }
 
-func Crypt(packet []byte) []byte {
-	hashPointer := 0
+func Crypt(packet []byte, hashPointer *int) []byte {
+	//hashPointer := 0
 	decrypt := make([]byte, len(packet))
 	for x := 0; x < len(packet); x++ {
-		decrypt[x] = (packet[x] ^ HashOne[hashPointer]) ^ HashTwo[hashPointer]
-		hashPointer = (hashPointer + 1) % 256
+		decrypt[x] = (packet[x] ^ HashOne[*hashPointer]) ^ HashTwo[*hashPointer]
+		*hashPointer = (*hashPointer + 1) % 256
 	}
 	return decrypt
 }
