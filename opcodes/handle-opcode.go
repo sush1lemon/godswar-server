@@ -40,7 +40,7 @@ func (h handler) HandleOPCode() ([]byte, error) {
 	case MSG_SELECT_SERVER:
 		return packets.SEND_SERVER, nil
 	case MSG_LOGIN_RETURN_INFO:
-		return nil, nil
+		return packets.NEW_GAME_SERVER, nil
 	default:
 		logger.BasicLog("Invalid OPCode:", h.decoded.OPCode)
 		logger.BasicLog("Buff Count:", h.decoded.Len)
