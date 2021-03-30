@@ -16,5 +16,6 @@ This version were at real early stages this are the features:
 
 These [packets](https://github.com/sush1lemon/godswar-server/blob/main/pkg/packets) are currently sent as a placeholder 
 
+**Current Progress**
 ![Progress](https://github.com/sush1lemon/godswar-server/blob/main/image.png?raw=true)
 
