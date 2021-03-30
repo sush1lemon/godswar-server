@@ -1,12 +1,13 @@
-package main
+package config
 
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
+	"os"
 )
 
-type config struct {
+type AppConfig struct {
 	Server     server   `yaml:"server"`
 	GameServer server   `yaml:"gameserver"`
 	Database   database `yaml:"database"`
@@ -26,9 +27,9 @@ type database struct {
 	Database string `yaml:"database"`
 }
 
-func (c *config) getConfig() *config {
-
-	yamlFile, err := ioutil.ReadFile("config.yml")
+func (c *AppConfig) GetConfig() *AppConfig {
+	pwd, _ := os.Getwd()
+	yamlFile, err := ioutil.ReadFile(pwd + "/config/config.yml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}

@@ -47,7 +47,6 @@ type Decode struct {
 	Len           int
 	Buffer        []byte
 	OPCode        int
-	DataSize      uint16
 	DecodedBuffer []byte
 	RawBuffer     []byte
 }

@@ -15,6 +15,6 @@ type SkillInfo struct {
 	IsReady      bool
 }
 
-func NewSkillInfo() SkillInfo  {
+func NewSkillInfo() SkillInfo {
 	return SkillInfo{}
 }

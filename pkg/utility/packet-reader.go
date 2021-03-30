@@ -13,7 +13,7 @@ type packetreader struct {
 
 func (p packetreader) UInt32() uint32 {
 	tmp := make([]byte, len(p.buffer) - 2)
-	copy(tmp, p.buffer[cursor + 2:])
+	copy(tmp, p.buffer[cursor+ 2:])
 
 
 	x := bytes.NewBuffer(tmp)

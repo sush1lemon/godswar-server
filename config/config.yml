@@ -1,7 +1,7 @@
 # LoginServer
 server:
   host: '127.0.0.1'
-  port: '7000'
+  port: '5999'
   type: 'tcp'
 
 # GameServer
