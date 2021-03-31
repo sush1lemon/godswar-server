@@ -3,7 +3,6 @@ package server
 import (
 	"bufio"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 	"godswar/pkg/decode"
 	"godswar/pkg/logger"
@@ -80,10 +79,10 @@ func (s Server) handleConnection(n net.Conn)  {
 			break
 		}
 
-		logger.BasicLog("OPCode:", packet.OPCode)
-		logger.BasicLog("Buff Count:", packet.Len)
-		logger.BasicLog("Buffer")
-		fmt.Println(hex.Dump(packet.Buffer))
+		//logger.BasicLog("OPCode:", packet.OPCode)
+		//logger.BasicLog("Buff Count:", packet.Len)
+		//logger.BasicLog("Buffer")
+		//fmt.Println(hex.Dump(packet.Buffer))
 
 		if packet.Len > 4 {
 			opch := opcodes.NewOPCodeHandler(packet, conn)

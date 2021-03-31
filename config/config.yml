@@ -17,3 +17,10 @@ database:
   user: 'root'
   password: ''
   database: 'godswar'
+
+# Caching
+redis:
+  host: '127.0.0.1'
+  port: '6379'
+  user: ''
+  password: ''

@@ -1,8 +1,6 @@
 package networking
 
 import (
-	"encoding/hex"
-	"fmt"
 	"godswar/pkg/decode"
 	"godswar/pkg/logger"
 	"net"
@@ -28,7 +26,5 @@ func (c Connection) Disconnect() {
 }
 
 func (c Connection) Send(m []byte) {
-	logger.BasicLog("Sending data to client")
-	fmt.Println(hex.Dump(m))
 	c.n.Write(decode.Crypt(m, c.sentHashPointer))
 }

@@ -1,6 +1,8 @@
 package opcodes
 
 import (
+	"encoding/hex"
+	"fmt"
 	"godswar/pkg/decode"
 	"godswar/pkg/logger"
 	"godswar/pkg/networking"
@@ -49,11 +51,32 @@ func (h handler) HandleOPCode() ([]byte, error) {
 		break
 	case MSG_LOGIN_GAMESERVER:
 		h.conn.Send(packets.AFTER_LOGIN)
-		h.conn.Send(packets.AFTER_LOGIN_TWO)
+		h.conn.Send(packets.CHAMP)
+		break
+	case MSG_CREATE_ROLE:
+		h.conn.Send([]byte{0x0C, 0x00, 0xB4, 0x27, 0x13, 0x27, 0x8D, 0x0B,  0x01, 0x00, 0x00, 0x00})
+		break
+	case MSG_ENTER_GAME:
+		h.conn.Send(packets.ENTER_PART1)
+		h.conn.Send(packets.ENTER_PART2)
+		h.conn.Send(packets.ENTER_PART3)
+		h.conn.Send(packets.ENTER_PART4)
+		break
+	case 10015:
+		/*
+			Keep alive?
+		 */
+		h.conn.Send(h.decoded.Buffer)
+		break
+	case 10194:
+		/*
+			Walk ?
+		 */
 		break
 	default:
 		logger.BasicLog("Invalid OPCode:", h.decoded.OPCode)
 		logger.BasicLog("Buff Count:", h.decoded.Len)
+		fmt.Println(hex.Dump(h.decoded.Buffer))
 		return []byte{0x00}, nil
 	}
 

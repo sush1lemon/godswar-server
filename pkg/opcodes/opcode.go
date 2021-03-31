@@ -6,21 +6,29 @@ const (
 
 	//client<->login server
 	MSG_LOGIN              = 1
+	MSG_INVALID_CREDENTIAL = 3
 	MSG_SELECT_SERVER      = 4 // ,...sush 1lemon..
 	MSG_LOGIN_RETURN_INFO  = 6 // \...sush 1lemon.. | 0x5c 00 06
-	MSG_REQUEST_GAMESERVER //ÇëÇóÓÎÏ··þÎñÆ÷
+	MSG_REQUEST_GAMESERVER     //ÇëÇóÓÎÏ··þÎñÆ÷
 
 	//loginserver<--->gamereserser
 	MSG_VALIDATE_GAMESERVER = 300 //ÓÎÏ··þÎñÆ÷ÑéÖ¤Âë
+
+	/*
+		unknown opcode when entering the game
+		10311, 10007, 12000, 10202, 10357, 10312
+
+		10194 = walk?
+	*/
 
 	//client<->game server
 	MSG_LOGIN_GAMESERVER    = 10000 //µÇÂ¼ÓÎÏ··þÎñÆ÷
 	MSG_RESPONSE_GAMESERVER         //·µ»ØÑ¡ÔñÓÎÏ··þÎñÆ÷IP
 	MSG_ROLE_INFO                   //½ÇÉ«ÐÅÏ¢
-	MSG_CREATE_ROLE                 //´´½¨½ÇÉ«
+	MSG_CREATE_ROLE         = 10003 //´´½¨½ÇÉ«
 	MSG_DELETE_ROLE                 //É¾³ý½ÇÉ«
 	MSG_GAMESERVER_READY            //ÓÎÏ··þÎñÆ÷¾ÍÐ÷
-	MSG_ENTER_GAME                  //¿Í»§¶Ë¾ÍÐ÷×¼±¸½øÈëÓÎÏ·
+	MSG_ENTER_GAME          = 10006 //¿Í»§¶Ë¾ÍÐ÷×¼±¸½øÈëÓÎÏ·
 	MSG_CLIENT_READY                //¿Í»§¶Ë³õÊ¼»¯Íê±Ï
 	MSG_GAMESERVER_INFO
 
@@ -48,7 +56,7 @@ const (
 	MSG_STORAGE
 
 	// ½»»¥¹¦ÄÜÏûÏ¢
-	MSG_TALK
+	MSG_TALK = 10035
 	MSG_TALKCHANNEL
 	//MSG_TRADE
 
