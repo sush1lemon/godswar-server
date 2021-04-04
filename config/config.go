@@ -29,7 +29,7 @@ type database struct {
 
 func (c *AppConfig) GetConfig() *AppConfig {
 	pwd, _ := os.Getwd()
-	yamlFile, err := ioutil.ReadFile(pwd + "/config/config.yml")
+	yamlFile, err := ioutil.ReadFile(pwd + "/config.yml")
 	if err != nil {
 		log.Printf("yamlFile.Get err   #%v ", err)
 	}

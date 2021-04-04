@@ -22,7 +22,7 @@ const (
 	*/
 
 	//client<->game server
-	MSG_LOGIN_GAMESERVER    = 10000 //µÇÂ¼ÓÎÏ··þÎñÆ÷
+	MSG_LOGIN_GAMESERVER    = 10000 //µÇÂ¼ÓÎÏ··þÎñÆ÷ / kick
 	MSG_RESPONSE_GAMESERVER         //·µ»ØÑ¡ÔñÓÎÏ··þÎñÆ÷IP
 	MSG_ROLE_INFO                   //½ÇÉ«ÐÅÏ¢
 	MSG_CREATE_ROLE         = 10003 //´´½¨½ÇÉ«

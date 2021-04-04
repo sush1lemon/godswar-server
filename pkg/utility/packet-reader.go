@@ -28,7 +28,7 @@ func (p packetreader) Skip(len int) {
 	cursor += len
 }
 
-func (p packetreader) Read(len int) string {
+func (p packetreader) Read(len int) []byte {
 	var to int
 	if cursor == 0 {
 		to = (len + cursor) - 1
@@ -39,7 +39,7 @@ func (p packetreader) Read(len int) string {
 	buff := make([]byte, len)
 	copy(buff, p.buffer[cursor:to])
 	cursor += len
-	return string(buff)
+	return buff
 }
 
 func (p packetreader) Len() int  {
@@ -47,7 +47,7 @@ func (p packetreader) Len() int  {
 }
 
 type PacketReader interface {
-	Read(len int) string
+	Read(len int) []byte
 	Skip(len int)
 	UInt32() uint32
 	Len() int

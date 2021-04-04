@@ -16,7 +16,7 @@ database:
   port: '3306'
   user: 'root'
   password: ''
-  database: 'godswar'
+  database: 'gw_emu'
 
 # Caching
 redis:

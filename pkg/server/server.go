@@ -8,6 +8,7 @@ import (
 	"godswar/pkg/logger"
 	"godswar/pkg/networking"
 	"godswar/pkg/opcodes"
+	"godswar/pkg/services"
 	"net"
 	"os"
 )
@@ -60,7 +61,7 @@ func (s Server) handleConnection(n net.Conn)  {
 	recvHashPointer := 0
 	sentHashPointer := 0
 	conn := networking.NewConnection(n, &recvHashPointer, &sentHashPointer)
-
+	service := services.NewService(&s.Db, &conn)
 	buffer := make([]byte, MaxBuffer)
 
 	for {
@@ -85,7 +86,7 @@ func (s Server) handleConnection(n net.Conn)  {
 		//fmt.Println(hex.Dump(packet.Buffer))
 
 		if packet.Len > 4 {
-			opch := opcodes.NewOPCodeHandler(packet, conn)
+			opch := opcodes.NewOPCodeHandler(packet, conn, service)
 			_, err := opch.HandleOPCode()
 			if err != nil {
 				conn.Disconnect()
