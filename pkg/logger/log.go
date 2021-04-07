@@ -31,7 +31,8 @@ func Color(colorString string) func(...interface{}) string {
 }
 
 func BasicLog(s ...interface{})  {
-	t := time.Now()
+	loc, _ := time.LoadLocation("Asia/Manila")
+	t := time.Now().In(loc)
 	fmt.Printf("%d:%d:%d ", t.Hour(), t.Minute(), t.Second())
 	fmt.Print("[Server] ")
 	fmt.Println(s...)

@@ -3,34 +3,36 @@ package opcodes
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/nats-io/nats.go"
 	"godswar/pkg/decode"
 	"godswar/pkg/experimental"
 	"godswar/pkg/logger"
 	"godswar/pkg/networking"
 	"godswar/pkg/packets"
 	"godswar/pkg/services"
-	"godswar/pkg/utility"
+	"math/rand"
 	"time"
 )
 
 type handler struct {
 	decoded decode.Decode
-	conn    networking.Connection
+	conn    *networking.Connection
 	backend *services.Service
+	rdb *nats.EncodedConn
 }
 
 type OPCode interface {
 	HandleOPCode() ([]byte, error)
 }
 
-func NewOPCodeHandler(decoded decode.Decode, conn networking.Connection, backend *services.Service) OPCode {
-	return &handler{decoded, conn, backend}
+func NewOPCodeHandler(decoded decode.Decode, conn *networking.Connection, backend *services.Service, rdb *nats.EncodedConn) OPCode {
+	return &handler{decoded, conn, backend, rdb}
 }
 
 
 func (h handler) HandleOPCode() ([]byte, error) {
 
-	reader := utility.NewPacketReader(h.decoded.DecodedBuffer)
+	//reader := utility.NewPacketReader(h.decoded.DecodedBuffer)
 	switch h.decoded.OPCode {
 	case MSG_LOGIN:
 		h.backend.Account.Login(&h.decoded)
@@ -43,19 +45,28 @@ func (h handler) HandleOPCode() ([]byte, error) {
 		h.conn.Send(packets.NEW_GAME_SERVER)
 		break
 	case MSG_LOGIN_GAMESERVER:
-		time.Sleep(5000)
-		h.conn.Send(packets.AFTER_LOGIN)
-		time.Sleep(5000)
-		h.conn.Send(packets.CHAMPTEST)
+		go h.backend.Account.GetAccountCharacters(&h.decoded)
 		break
 	case MSG_CREATE_ROLE:
+		h.backend.Account.CreateAccountCharacter(&h.decoded)
 		h.conn.Send([]byte{0x0C, 0x00, 0xB4, 0x27, 0x13, 0x27, 0x8D, 0x0B, 0x01, 0x00, 0x00, 0x00})
 		break
 	case MSG_ENTER_GAME:
 		/*
 			request for files?
 		*/
-		h.conn.Send(packets.ENTER_PART1)
+
+		h.conn.Send(packets.AFTER_LOGIN)
+		l, _ := h.rdb.Subscribe("GAME:MESSAGING", func(p decode.Decode) {
+			fmt.Println(hex.Dump(p.Buffer))
+			h.conn.Send(p.Buffer)
+		})
+
+		h.conn.AttachGameStateListener(l)
+
+		test := packets.ENTER_PART1
+		test[10] = byte(rand.Intn(80))
+		h.conn.Send(test)
 		h.conn.Send(packets.ENTER_PART4)
 		break
 	case 10015:
@@ -65,27 +76,29 @@ func (h handler) HandleOPCode() ([]byte, error) {
 		h.conn.Send(h.decoded.Buffer)
 		break
 	case 10035:
+		h.rdb.Publish("GAME:MESSAGING", h.decoded)
 		break
 	case 10194:
+		h.rdb.Publish("GAME:MESSAGING", h.decoded)
 		/*
 			Walk ?
 		*/
-		_ = reader.Read(2)
-		_ = reader.Read(1)
-		reader.Skip(1)
-
-		x := reader.Read(4)
-		y := reader.Read(4)
-		mp := reader.Read(4)
-
-		coorx := utility.Float64frombytes(x)
-		coory := utility.Float64frombytes(y)
-		coorz := utility.Float64frombytes(mp)
+		//_ = reader.Read(2)
+		//_ = reader.Read(1)
+		//reader.Skip(1)
+		//
+		//x := reader.Read(4)
+		//y := reader.Read(4)
+		//mp := reader.Read(4)
+		//
+		//coorx := utility.Float64frombytes(x)
+		//coory := utility.Float64frombytes(y)
+		//coorz := utility.Float64frombytes(mp)
 		//
 		//fmt.Println(hex.Dump(x))
 		//fmt.Println(hex.Dump(y))
 		//fmt.Println(hex.Dump(mp))
-		fmt.Println("x:",coorx, "y:", coory, "mp:", coorz)
+		//fmt.Println("x:",coorx, "y:", coory, "mp:", coorz)
 		//fmt.Println(mp)
 		break
 	case 10311:
@@ -96,6 +109,9 @@ func (h handler) HandleOPCode() ([]byte, error) {
 			request for files?
 		*/
 		//h.conn.Send(experimental.ATHENS_NPC)
+		break
+	case 10117:
+		// Forge
 		break
 	case 10200:
 		//h.conn.Send(experimental.SYNC_AP)

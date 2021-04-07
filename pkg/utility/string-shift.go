@@ -79,3 +79,7 @@ func Parser(dt string) string {
 
 	return fullData
 }
+
+func RemoveBlank(dt string) string {
+	return string(bytes.Trim([]byte(dt), "\u0000"))
+}

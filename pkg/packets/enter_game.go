@@ -66,7 +66,7 @@ var ENTER_PART1 = []byte{
 	0x03, // Class
 	0x36, // HAIR
 	0x00,
-	0x01,
+	0x02, // map
 	0x00, //........  ....5...
 
 

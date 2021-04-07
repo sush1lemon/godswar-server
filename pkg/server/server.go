@@ -2,8 +2,9 @@ package server
 
 import (
 	"bufio"
-	"database/sql"
 	"fmt"
+	"github.com/nats-io/nats.go"
+	"github.com/upper/db/v4"
 	"godswar/pkg/decode"
 	"godswar/pkg/logger"
 	"godswar/pkg/networking"
@@ -16,17 +17,31 @@ import (
 const MaxBuffer = 8196
 
 type Server struct {
-	Db sql.DB
-	Config ServerConfig
+	Db     db.Session
+	Config Config
 }
 
-type ServerConfig struct {
+type Config struct {
 	Host string
 	Port string
 	Type string
 }
 
+
 func (s Server) NewServer()  {
+
+	nc, err := nats.Connect("nats://127.0.0.1:4222")
+	if err != nil {
+		logger.BasicLog("Cannot connect to nats server")
+		os.Exit(1)
+	}
+	c, err := nats.NewEncodedConn(nc, nats.GOB_ENCODER)
+	if err != nil {
+		logger.BasicLog("Cannot connect to nats server")
+		os.Exit(1)
+	}
+	defer c.Close()
+	defer nc.Close()
 
 	l, err := net.Listen(s.Config.Type, fmt.Sprintf("%s:%s", s.Config.Host, s.Config.Port))
 	if err != nil {
@@ -45,23 +60,18 @@ func (s Server) NewServer()  {
 			os.Exit(1)
 		}
 
-		go s.handleConnection(conn)
+		go s.handleConnection(conn, c)
 	}
 }
 
-func (s Server) handleConnection(n net.Conn)  {
+func (s Server) handleConnection(n net.Conn, rdb *nats.EncodedConn)  {
 
-
-	/*
-		Receive hash pointer and sent hash pointer
-		must be a pointer
-		1 conn = 1 hash pointer
-	*/
+	logger.BasicLog("New socket connected")
 
 	recvHashPointer := 0
 	sentHashPointer := 0
-	conn := networking.NewConnection(n, &recvHashPointer, &sentHashPointer)
-	service := services.NewService(&s.Db, &conn)
+	conn := networking.NewConnection(n, &recvHashPointer, &sentHashPointer, nil)
+	service := services.NewService(s.Db, conn)
 	buffer := make([]byte, MaxBuffer)
 
 	for {
@@ -86,7 +96,7 @@ func (s Server) handleConnection(n net.Conn)  {
 		//fmt.Println(hex.Dump(packet.Buffer))
 
 		if packet.Len > 4 {
-			opch := opcodes.NewOPCodeHandler(packet, conn, service)
+			opch := opcodes.NewOPCodeHandler(packet, conn, service, rdb)
 			_, err := opch.HandleOPCode()
 			if err != nil {
 				conn.Disconnect()

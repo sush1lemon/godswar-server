@@ -2,6 +2,7 @@ package decode
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
 )
 
@@ -59,6 +60,10 @@ func NewDecoder(reader io.Reader, buff []byte, hashPointer *int) (Decode, error)
 	ttl, err := reader.Read(buff)
 	if err != nil {
 		return decoded, err
+	}
+
+	if ttl < 4 {
+		return decoded, errors.New("invalid packet")
 	}
 
 

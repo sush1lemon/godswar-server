@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"godswar/pkg/packets"
-	"math"
+	"time"
 )
 
 type Test struct {
@@ -15,24 +15,30 @@ type Test struct {
 	ClientMac [32]byte
 	Unk2      [40]byte
 }
+func getSecondOfDay(t time.Time) int {
+	return 60*60*t.Hour() + 60*t.Minute() + t.Second()
+}
+func main() {
 
-func main()  {
+	t := time.Now()
+	ts := getSecondOfDay(t)
+
+	fmt.Println([]byte("[4000,,,,,,0,10,1,1,0]#[4030,,,,,,0,10,1,1,0]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#[]#"))
+
 
 	fmt.Println(len(packets.ENTER_PART1), len(packets.ENTER_PART4), len(packets.CHAMPTEST))
-	bs := []byte{0x58, 0x06, 0x23, 0x27,}
+	bs := []byte{0x9C, 0xBE, 0x64, 0x60,}
 	wnt := make([]byte, 4)
 	bc := binary.LittleEndian.Uint16(bs)
 	fmt.Println(bc)
-	fmt.Println(math.Float32frombits(uint32(bc)))
-	binary.LittleEndian.PutUint16(wnt, 2030)
+	binary.LittleEndian.PutUint16(wnt, uint16(ts))
 
-	fmt.Println(hex.Dump(bs))
+	//fmt.Println(hex.Dump(bs))
 	fmt.Println(hex.Dump(wnt))
+	fmt.Println(ts)
 	//fmt.Println(hex.Dump([]byte("abcdefghijklmnopqrstuvwxyz123456")))
 
 	//packets.Test()
-
-
 
 	//var test Test
 	//buf := bytes.NewReader(h.decoded.DecodedBuffer[:])
