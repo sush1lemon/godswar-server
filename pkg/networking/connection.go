@@ -4,6 +4,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"godswar/pkg/decode"
 	"godswar/pkg/logger"
+	"godswar/pkg/types"
 	"net"
 )
 
@@ -12,16 +13,17 @@ func NewConnection(conn net.Conn, recvHashPointer *int, sentHashPointer *int, li
 		n:               conn,
 		recvHashPointer: recvHashPointer,
 		sentHashPointer: sentHashPointer,
-		listener: listener,
+		listener:        listener,
 	}
 }
 
 type Connection struct {
-	n net.Conn
+	n               net.Conn
 	recvHashPointer *int
 	sentHashPointer *int
-	listener *nats.Subscription
-	ServerID *int
+	listener        *nats.Subscription
+	ServerID        *int
+	types.UserSession
 }
 
 func (c *Connection) Disconnect() {
@@ -36,6 +38,6 @@ func (c Connection) Send(m []byte) {
 	c.n.Write(decode.Crypt(m, c.sentHashPointer))
 }
 
-func (c *Connection) AttachGameStateListener(l *nats.Subscription)  {
+func (c *Connection) AttachGameStateListener(l *nats.Subscription) {
 	c.listener = l
 }

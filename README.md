@@ -16,7 +16,8 @@ This version were at real early stages this are the features:
 * Network Handling
 * Basic Login Server
 * Packet Encryption / Decryption
-* Game server
+* ***Game server***
+    * Character creation
 
 **All data sent from server are all placeholder**
 

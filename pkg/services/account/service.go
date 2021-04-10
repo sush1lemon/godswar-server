@@ -6,10 +6,19 @@ import (
 	"fmt"
 	"github.com/upper/db/v4"
 	"godswar/pkg/decode"
+	"godswar/pkg/defaults"
 	"godswar/pkg/logger"
 	"godswar/pkg/networking"
 	"godswar/pkg/packets"
+	"godswar/pkg/requests"
+	"godswar/pkg/types"
+	"godswar/pkg/types/account"
 	"godswar/pkg/utility"
+	"math/rand"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 )
 
 func NewAccountService(db db.Session, conn *networking.Connection) Service {
@@ -30,7 +39,7 @@ func (s service) LoginFail(reason uint16) {
 }
 
 func (s service) Login(packet *decode.Decode) {
-	var request AuthRequest
+	var request requests.AuthRequest
 	reader := bytes.NewReader(packet.DecodedBuffer[:])
 	err := binary.Read(reader, binary.LittleEndian, &request)
 	if err != nil {
@@ -57,8 +66,8 @@ func (s service) Login(packet *decode.Decode) {
 }
 
 func (s service) GetAccountCharacters(packet *decode.Decode) {
-	var request GetCharacterRequest
-	var character CharacterBase
+	var request requests.GetCharacterRequest
+	var character account.CharacterBase
 	var server Server
 	reader := bytes.NewReader(packet.Buffer[4:])
 	err := binary.Read(reader, binary.LittleEndian, &request)
@@ -67,7 +76,6 @@ func (s service) GetAccountCharacters(packet *decode.Decode) {
 		s.conn.Disconnect()
 	}
 
-	s.conn.ServerID = &server.ID
 	username := utility.RemoveBlank(string(request.Username[:]))
 	identifier := string(request.ServerIdentifier[:])
 
@@ -78,13 +86,27 @@ func (s service) GetAccountCharacters(packet *decode.Decode) {
 		logger.BasicLog("Server not found", err)
 		s.conn.Disconnect()
 	}
+	s.conn.ServerID = &server.ID
 
+	userTbl := s.db.Collection("accounts")
+	uQuery := userTbl.Find(db.Cond{"username": username})
+	_, err = uQuery.Count()
+	if err != nil {
+		logger.BasicLog("User not found", err)
+		s.conn.Disconnect()
+	}
+
+	var user account.Account
+	err = uQuery.One(&user)
+	if err != nil {
+		logger.BasicLog(err)
+	}
+
+	s.conn.AccountInfo = &user
 	query := s.db.SQL().
 		Select("cb.*").From("character_base as cb").
-		Join("accounts as acc").On(" cb.account_id = acc.id").
 		Where("cb.server_id = ?", server.ID).
-		Where("acc.username = ?", username)
-
+		Where("cb.account_id = ?", user.ID)
 
 	err = query.One(&character)
 	if err != nil {
@@ -92,10 +114,9 @@ func (s service) GetAccountCharacters(packet *decode.Decode) {
 		s.conn.Send(packets.BLANK_USER)
 		return
 	}
-	var equips []CharacterEquip
 
-	//ebyte := make([]byte, 60)
-
+	s.conn.Character = &character
+	var equips []account.CharacterEquip
 	err = s.db.SQL().Select("*").From("character_equip").
 		Where("user_id", character.ID).All(&equips)
 
@@ -103,44 +124,237 @@ func (s service) GetAccountCharacters(packet *decode.Decode) {
 		logger.BasicLog(err)
 	}
 
-	fmt.Println(equips)
+	var kitbag account.CharacterKitBag
+	err = s.db.SQL().Select("*").From("character_kitbag").
+		Where("user_id", character.ID).One(&kitbag)
+	if err != nil {
+		logger.BasicLog("Cannot fetch character kitbag", err)
+	}
 
-	//chars := make([]byte, 500)
-	//buffer := bytes.NewBuffer(chars)
-	//buffer.Write()
-	fmt.Println(character.Name)
-	s.conn.Send(packets.CHAMPTEST)
+	go s.generateUserInfo(character, kitbag)
+	equip := *kitbag.Equip
 
-	//fmt.Println(character)
-	//query, err := s.db.Prepare("SELECT cb.* FROM `character_base` cb " +
-	//	"JOIN accounts acc ON cb.account_id = acc.id" +
-	//	"JOIN server ON cb.server_id = server.id " +
-	//	"WHERE server.identifier = ? " +
-	//	"AND acc.username = ? LIMIT 1")
-	//if err != nil {
-	//	logger.BasicLog(err)
-	//	s.conn.Send(packets.BLANK)
-	//}
-	//
-	//row, err := query.Query(username, identifier)
-	//if err != nil {
-	//	logger.BasicLog(err)
-	//	s.conn.Disconnect()
-	//}
-	//
-	//switch err := row.Scan(&account.Username, &account.Password); err {
-	//case nil:
-	//	s.conn.Send(packets.SERVER_LIST)
-	//	break
-	//default:
-	//	s.LoginFail(3)
-	//}
-	//
-	//defer query.Close()
-
+	_, _, equipIDs := s.parseKitBag(equip, true, false)
+	preview := s.generateUserPreview(character, equipIDs)
+	previewBytes := preview.Bytes()
+	s.conn.PreviewBytes = &previewBytes
+	s.conn.Send(previewBytes)
 }
 
 func (s service) CreateAccountCharacter(packet *decode.Decode) {
-	fmt.Println(packet.OPCode)
-	fmt.Println(*s.conn.ServerID)
+	var request requests.CreateCharacterRequest
+	reader := bytes.NewReader(packet.DecodedBuffer[:])
+	err := binary.Read(reader, binary.LittleEndian, &request)
+	if err != nil {
+		logger.BasicLog(err)
+		s.conn.Disconnect()
+	}
+
+	name := utility.RemoveBlank(string(request.CharName[:]))
+	var gender string
+	if request.Gender == 0 {
+		gender = "female"
+	} else {
+		gender = "male"
+	}
+
+	cb := account.CharacterBase{
+		AccountID:           s.conn.AccountInfo.ID,
+		ServerID:            *s.conn.ServerID,
+		Name:                name,
+		Gender:              gender,
+		GM:                  0,
+		Camp:                int(request.Camp),
+		Profession:          int(request.Class),
+		FighterJobLv:        1,
+		ScholarJobLv:        0,
+		FighterJobExp:       0,
+		ScholarJobExp:       0,
+		CurHP:               1500,
+		CurMP:               177,
+		Status:              0,
+		Belief:              int(request.Faith),
+		Prestige:            0,
+		Consortia:           0,
+		ConsortiaJob:        0,
+		ConsortiaContribute: 0,
+		StoreNum:            0,
+		BagNum:              0,
+		HairStyle:           int(request.Hair),
+		FaceShape:           int(request.Face),
+		CurrentMap:          1,
+		PosX:                165.00,
+		PosZ:                -97.00,
+		Money:               10000,
+		Stone:               10,
+		SkillPoint:          10,
+		SkillExp:            0,
+		MaxHP:               1500,
+		MaxMP:               177,
+	}
+
+	r, err :=s.db.SQL().InsertInto("character_base").Values(cb).Exec()
+	if err != nil {
+		logger.BasicLog("ERROR INSERINT", err)
+		s.conn.Send(defaults.USERNAME_TAKEN)
+		return
+	}
+
+	var defEquip string
+	switch request.Class {
+	case 0:
+		defEquip = defaults.DEFAULT_EQUIPWR
+		break
+	case 1:
+		defEquip = defaults.DEFAULT_EQUIPCH
+		break
+	case 2:
+		defEquip = defaults.DEFAULT_EQUIPPR
+		break
+	case 3:
+		defEquip = defaults.DEFAULT_EQUIPMG
+		break
+	}
+
+	id, err :=  r.LastInsertId()
+	if err != nil {
+		logger.BasicLog("Cannot get last insert id")
+	}
+
+	kitBag := defaults.DEFAULT_KITBAG
+
+	kitBagData := account.CharacterKitBag{
+		CharID: int(id),
+		KitBag1: kitBag,
+		KitBag2: nil,
+		KitBag3: nil,
+		KitBag4: nil,
+		Storage: nil,
+		Equip:   &defEquip,
+	}
+
+	_, err = s.db.Collection("character_kitbag").Insert(kitBagData)
+	if err != nil {
+		logger.BasicLog("Error in creating kitbag", err)
+	}
+
+	s.generateUserInfo(cb, kitBagData)
+	_, _, equipIDs := s.parseKitBag(defEquip, true, false)
+	s.generateUserPreview(cb, equipIDs)
+	s.conn.Send([]byte{0x0C, 0x00, 0xB4, 0x27, 0x13, 0x27, 0x8D, 0x0B, 0x01, 0x00, 0x00, 0x00})
+}
+
+func (s service) DeleteAccountCharacter(packet *decode.Decode)  {
+
+}
+
+func (s service) parseKitBag(bag string, getEmpty bool, emptyOnly bool) (bytes.Buffer, map[int]types.Item,  bytes.Buffer) {
+
+	var kitbag bytes.Buffer
+	var kitbagids bytes.Buffer
+	kitbagArr := make(map[int]types.Item)
+	kbd := regexp.MustCompile(`#`)
+	eqd := regexp.MustCompile(`,`)
+
+	items := kbd.Split(bag, -1)
+	for i, e := range items {
+		if e == "[]" && getEmpty {
+			e = "[0,,,,,,1,1,0,1,0]"
+		}
+
+		if e == "[]" {
+			if getEmpty {
+				padding := make([]byte, 72)
+				kitbag.Write(padding)
+				kitbagids.Write([]byte{0x00, 0x00, 0x00, 0x00})
+			}
+		} else if e != "" {
+			e = strings.Replace(e, "[", "", -1)
+			e = strings.Replace(e, "]", "", -1)
+			item := eqd.Split(e, -1)
+			itembar := make([]byte, 72)
+			itemBuff := bytes.NewBuffer(itembar)
+			itemBuff.Reset()
+
+			id := s.equipToData(item[0])
+
+			if emptyOnly && item[0] != "0" {
+				continue
+			}
+
+			s1 := s.equipToData(item[1])
+			s2 := s.equipToData(item[2])
+			s3 := s.equipToData(item[3])
+			s4 := s.equipToData(item[4])
+			s5 := s.equipToData(item[5])
+
+			quality := uint8(s.stringToInt(item[6]))
+			grade := uint8(s.stringToInt(item[7]))
+			bound := uint8(s.stringToInt(item[8]))
+			stack := uint8(s.stringToInt(item[9]))
+			exp := s.equipToData(item[10])
+			padding := make([]byte, 32)
+
+			rand.Seed(time.Now().UnixNano())
+			token := make([]byte, 4)
+			rand.Read(token)
+			token[3] = byte(i)
+
+			itemBuff.Write(id)
+			itemBuff.Write(s1)
+			itemBuff.Write(s2)
+			itemBuff.Write(s3)
+			itemBuff.Write(s4)
+			itemBuff.Write(s5)
+			itemBuff.WriteByte(quality)
+			itemBuff.WriteByte(grade)
+			itemBuff.WriteByte(bound)
+			itemBuff.WriteByte(stack)
+			itemBuff.Write(exp)
+			itemBuff.Write(padding)
+			itemBuff.Write(token)
+			itemBuff.Write([]byte{0x42, 0x00, 0x00, 0x00})
+			itemBuff.WriteTo(&kitbag)
+			kitbagids.Write(id)
+
+			if getEmpty && !emptyOnly {
+				kitbagArr[i] = types.Item{
+					ID:      id,
+					Attr1:   s1,
+					Attr2:   s2,
+					Attr3:   s3,
+					Attr4:   s4,
+					Attr5:   s5,
+					Quality: quality,
+					Grade:   grade,
+					Bound:   bound,
+					Stack:   stack,
+					Exp:     exp,
+					Unk:     padding,
+					Ending: []byte{0x42, 0x00, 0x00, 0x00},
+				}
+			}
+		}
+	}
+
+	return kitbag, kitbagArr, kitbagids
+}
+
+func (s service) equipToData(e string) []byte {
+	if e == "" {
+		return []byte{0xFF, 0xFF, 0xFF, 0xFF}
+	}
+
+	id := s.stringToInt(e)
+	eq := make([]byte, 4)
+	binary.LittleEndian.PutUint16(eq, uint16(id))
+	return eq
+}
+
+func (s service) stringToInt(e string) int {
+	id, err := strconv.Atoi(e)
+	if err != nil {
+		logger.BasicLog("CANNOT PARSE STRING", e, err)
+	}
+	return id
 }

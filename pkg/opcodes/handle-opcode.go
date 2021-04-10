@@ -10,7 +10,6 @@ import (
 	"godswar/pkg/networking"
 	"godswar/pkg/packets"
 	"godswar/pkg/services"
-	"math/rand"
 	"time"
 )
 
@@ -49,7 +48,6 @@ func (h handler) HandleOPCode() ([]byte, error) {
 		break
 	case MSG_CREATE_ROLE:
 		h.backend.Account.CreateAccountCharacter(&h.decoded)
-		h.conn.Send([]byte{0x0C, 0x00, 0xB4, 0x27, 0x13, 0x27, 0x8D, 0x0B, 0x01, 0x00, 0x00, 0x00})
 		break
 	case MSG_ENTER_GAME:
 		/*
@@ -63,11 +61,14 @@ func (h handler) HandleOPCode() ([]byte, error) {
 		})
 
 		h.conn.AttachGameStateListener(l)
+		time.Sleep(time.Second)
+		h.conn.Send(*h.conn.CharacterBytes)
+		//h.conn.Send(experimental.ENTER_PART4)
 
-		test := packets.ENTER_PART1
-		test[10] = byte(rand.Intn(80))
-		h.conn.Send(test)
-		h.conn.Send(packets.ENTER_PART4)
+		//test := packets.ENTER_PART1
+		//test[10] = byte(rand.Intn(80))
+		//h.conn.Send(test)
+		//h.conn.Send(packets.ENTER_PART4)
 		break
 	case 10015:
 		/*

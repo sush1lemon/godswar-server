@@ -29,8 +29,7 @@ type Config struct {
 
 
 func (s Server) NewServer()  {
-
-	nc, err := nats.Connect("nats://127.0.0.1:4222")
+	nc, err := nats.Connect(nats.DefaultURL)
 	if err != nil {
 		logger.BasicLog("Cannot connect to nats server")
 		os.Exit(1)
@@ -89,7 +88,6 @@ func (s Server) handleConnection(n net.Conn, rdb *nats.EncodedConn)  {
 			conn.Disconnect()
 			break
 		}
-
 		//logger.BasicLog("OPCode:", packet.OPCode)
 		//logger.BasicLog("Buff Count:", packet.Len)
 		//logger.BasicLog("Buffer")
