@@ -18,6 +18,10 @@ type service struct {
 	conn *networking.Connection
 }
 
+func NewAccountService(db db.Session, conn *networking.Connection) Service {
+	return &service{db, conn}
+}
+
 type Account struct {
 	Username string
 	Password string

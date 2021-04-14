@@ -8,7 +8,6 @@ import (
 	"godswar/pkg/decode"
 	"godswar/pkg/defaults"
 	"godswar/pkg/logger"
-	"godswar/pkg/networking"
 	"godswar/pkg/packets"
 	"godswar/pkg/requests"
 	"godswar/pkg/types"
@@ -18,10 +17,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-func NewAccountService(db db.Session, conn *networking.Connection) Service {
-	return &service{db, conn}
-}
 
 func (s service) LoginFail(reason uint16) {
 	bar := new(bytes.Buffer)
@@ -162,7 +157,6 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 	} else {
 		curMap = 2
 	}
-	
 
 	cb := account.CharacterBase{
 		AccountID:           s.conn.AccountInfo.ID,
@@ -180,6 +174,7 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 		CurMP:               177,
 		Status:              0,
 		Belief:              int(request.Faith),
+		EarlRank:            0,
 		Prestige:            0,
 		Consortia:           0,
 		ConsortiaJob:        0,
@@ -197,9 +192,12 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 		SkillExp:            0,
 		MaxHP:               1500,
 		MaxMP:               177,
+		RegisterTime:        "2021-04-14 21:56:10",
+		LastLoginTime:       "2021-04-14 21:56:26",
+		MuteTime:            0000,
 	}
 
-	r, err :=s.db.SQL().InsertInto("character_base").Values(cb).Exec()
+	r, err := s.db.SQL().InsertInto("character_base").Values(cb).Exec()
 	if err != nil {
 		logger.BasicLog("ERROR INSERINT", err)
 		s.conn.Send(defaults.USERNAME_TAKEN)
@@ -222,7 +220,7 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 		break
 	}
 
-	id, err :=  r.LastInsertId()
+	id, err := r.LastInsertId()
 	if err != nil {
 		logger.BasicLog("Cannot get last insert id")
 	}
@@ -230,7 +228,7 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 	kitBag := defaults.DEFAULT_KITBAG
 
 	kitBagData := account.CharacterKitBag{
-		CharID: int(id),
+		CharID:  int(id),
 		KitBag1: kitBag,
 		KitBag2: nil,
 		KitBag3: nil,
@@ -250,11 +248,11 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 	s.conn.Send([]byte{0x0C, 0x00, 0xB4, 0x27, 0x13, 0x27, 0x8D, 0x0B, 0x01, 0x00, 0x00, 0x00})
 }
 
-func (s service) DeleteAccountCharacter(packet *decode.Decode)  {
+func (s service) DeleteAccountCharacter(packet *decode.Decode) {
 
 }
 
-func (s service) parseKitBag(bag string, getEmpty bool, emptyOnly bool) (bytes.Buffer, map[int]types.Item,  bytes.Buffer) {
+func (s service) parseKitBag(bag string, getEmpty bool, emptyOnly bool) (bytes.Buffer, map[int]types.Item, bytes.Buffer) {
 
 	var kitbag bytes.Buffer
 	var kitbagids bytes.Buffer
@@ -342,7 +340,7 @@ func (s service) parseKitBag(bag string, getEmpty bool, emptyOnly bool) (bytes.B
 					Stack:   stack,
 					Exp:     exp,
 					Unk:     padding,
-					Ending: []byte{0x42, 0x00, 0x00, 0x00},
+					Ending:  []byte{0x42, 0x00, 0x00, 0x00},
 				}
 			}
 		}

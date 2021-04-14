@@ -25,6 +25,7 @@ type CharacterBase struct {
 	Status              int     `db:"status"`
 	Belief              int     `db:"belief"`
 	Prestige            int     `db:"prestige"`
+	EarlRank            int     `db:"earl_rank"`
 	Consortia           int     `db:"consortia"`
 	ConsortiaJob        int     `db:"consortia_job"`
 	ConsortiaContribute int     `db:"consortia_contribute"`
@@ -43,7 +44,7 @@ type CharacterBase struct {
 	MaxMP               int     `db:"MaxMP"`
 	RegisterTime        string  `db:"Register_time"`
 	LastLoginTime       string  `db:"LastLogin_time"`
-	MuteTime            string  `db:"mutetime"`
+	MuteTime            int     `db:"mutetime"`
 }
 
 type CharacterEquip struct {
