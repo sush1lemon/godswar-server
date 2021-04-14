@@ -13,11 +13,11 @@ func (s service) generateUserInfo(character account.CharacterBase, kitBag accoun
 	fmt.Println(*kitBag.Equip)
 	ebag := *kitBag.Equip
 	equip, _, _ := s.parseKitBag(ebag, false, false)
-	eblank, _, _ := s.parseKitBag(ebag, true, true)
+	//eblank, _, _ := s.parseKitBag(ebag, true, true)
 
 	fmt.Println(hex.Dump(equip.Bytes()))
 
-	kitBag1, kitBagData, _ := s.parseKitBag(kitBag.KitBag1, true, false)
+	//kitBag1, kitBagData, _ := s.parseKitBag(kitBag.KitBag1, true, false)
 	_, equipData, _ := s.parseKitBag(ebag, true, false)
 	var userInfo bytes.Buffer
 	var charName [32]byte
@@ -35,6 +35,7 @@ func (s service) generateUserInfo(character account.CharacterBase, kitBag accoun
 
 	fmt.Println(hex.Dump(x), hex.Dump(z))
 
+	userInfo.Write([]byte{0x58, 0x06, 0x23, 0x27, 0xD2, 0xE4, 0xEB, 0x0B,})
 	userInfo.Write(charName[:])
 	userInfo.WriteByte(gender)
 	userInfo.WriteByte(uint8(character.Camp))
@@ -60,11 +61,12 @@ func (s service) generateUserInfo(character account.CharacterBase, kitBag accoun
 	userInfo.Write([]byte{0x3C, 0x00, 0x00, 0x00})
 
 	equip.WriteTo(&userInfo)
-	eblank.WriteTo(&userInfo)
-	kitBag1.WriteTo(&userInfo)
+	//eblank.WriteTo(&userInfo)
+	//kitBag1.WriteTo(&userInfo)
 	//padding := make([]byte, 1248)
 	//userInfo.Write(padding)
 	//userInfo.Write(experimental.ENTER_PART4)
+	//userInfo.Write([]byte{0x04, 0x00, 0x15, 0x27,})
 
 
 	bLen := len(userInfo.Bytes())
@@ -74,12 +76,13 @@ func (s service) generateUserInfo(character account.CharacterBase, kitBag accoun
 	var complete bytes.Buffer
 	complete.Write(pvl)
 	complete.Write([]byte{0x23, 0x27, 0xD2, 0xE4, 0xEB, 0x0B})
-	userInfo.WriteTo(&complete)
+	//userInfo.WriteTo(&complete)
 
+	haha :=  userInfo.Bytes()
 	cb := complete.Bytes()
-	s.conn.Bag1 = &kitBagData
+	//s.conn.Bag1 = &kitBagData
 	s.conn.Equip = &equipData
-	s.conn.CharacterBytes = &cb
+	s.conn.CharacterBytes = &haha
 	fmt.Println(len(cb))
 	return complete
 }

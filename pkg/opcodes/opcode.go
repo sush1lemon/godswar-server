@@ -221,5 +221,5 @@ const (
 	MSG_TARGETINFO
 	MSG_DELAY_EXIT //µ¹¼ÆÊ±ÍË³ö
 
-	MSG_WALK
+	MSG_WALK = 10194
 )

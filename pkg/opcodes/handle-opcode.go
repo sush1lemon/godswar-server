@@ -44,42 +44,41 @@ func (h handler) HandleOPCode() ([]byte, error) {
 		h.conn.Send(packets.NEW_GAME_SERVER)
 		break
 	case MSG_LOGIN_GAMESERVER:
+		h.conn.Send(packets.AFTER_LOGIN)
 		go h.backend.Account.GetAccountCharacters(&h.decoded)
 		break
 	case MSG_CREATE_ROLE:
 		h.backend.Account.CreateAccountCharacter(&h.decoded)
 		break
 	case MSG_ENTER_GAME:
-		/*
-			request for files?
-		*/
-
-		h.conn.Send(packets.AFTER_LOGIN)
 		l, _ := h.rdb.Subscribe("GAME:MESSAGING", func(p decode.Decode) {
 			fmt.Println(hex.Dump(p.Buffer))
 			h.conn.Send(p.Buffer)
 		})
 
 		h.conn.AttachGameStateListener(l)
-		time.Sleep(time.Second)
-		h.conn.Send(*h.conn.CharacterBytes)
 		//h.conn.Send(experimental.ENTER_PART4)
 
-		//test := packets.ENTER_PART1
-		//test[10] = byte(rand.Intn(80))
-		//h.conn.Send(test)
-		//h.conn.Send(packets.ENTER_PART4)
+		h.conn.Send(*h.conn.CharacterBytes)
+		//h.conn.Send(experimental.ENTER_PART1)
+		h.conn.Send(experimental.ENTER_PART2_UNK)
+		h.conn.Send(experimental.ENTER_PART2)
+		h.conn.Send(experimental.ENTER_PART4)
+
+		//h.conn.Send(experimental.PHD1)
+		//h.conn.Send(experimental.PHD2)
+		//h.conn.Send(experimental.PHD3)
 		break
 	case 10015:
 		/*
-			Keep alive?
+			PING
 		*/
 		h.conn.Send(h.decoded.Buffer)
 		break
 	case 10035:
 		h.rdb.Publish("GAME:MESSAGING", h.decoded)
 		break
-	case 10194:
+	case MSG_WALK:
 		h.rdb.Publish("GAME:MESSAGING", h.decoded)
 		/*
 			Walk ?

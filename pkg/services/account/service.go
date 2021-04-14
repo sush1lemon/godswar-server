@@ -14,11 +14,9 @@ import (
 	"godswar/pkg/types"
 	"godswar/pkg/types/account"
 	"godswar/pkg/utility"
-	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func NewAccountService(db db.Session, conn *networking.Connection) Service {
@@ -152,11 +150,19 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 
 	name := utility.RemoveBlank(string(request.CharName[:]))
 	var gender string
+	var curMap int
 	if request.Gender == 0 {
 		gender = "female"
 	} else {
 		gender = "male"
 	}
+
+	if request.Camp == 1 {
+		curMap = 1
+	} else {
+		curMap = 2
+	}
+	
 
 	cb := account.CharacterBase{
 		AccountID:           s.conn.AccountInfo.ID,
@@ -182,7 +188,7 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 		BagNum:              0,
 		HairStyle:           int(request.Hair),
 		FaceShape:           int(request.Face),
-		CurrentMap:          1,
+		CurrentMap:          curMap,
 		PosX:                165.00,
 		PosZ:                -97.00,
 		Money:               10000,
@@ -293,12 +299,12 @@ func (s service) parseKitBag(bag string, getEmpty bool, emptyOnly bool) (bytes.B
 			bound := uint8(s.stringToInt(item[8]))
 			stack := uint8(s.stringToInt(item[9]))
 			exp := s.equipToData(item[10])
-			padding := make([]byte, 32)
+			padding := make([]byte, 36)
 
-			rand.Seed(time.Now().UnixNano())
-			token := make([]byte, 4)
-			rand.Read(token)
-			token[3] = byte(i)
+			//rand.Seed(time.Now().UnixNano())
+			//token := make([]byte, 4)
+			//rand.Read(token)
+			//token[3] = byte(i)
 
 			itemBuff.Write(id)
 			itemBuff.Write(s1)
@@ -312,8 +318,13 @@ func (s service) parseKitBag(bag string, getEmpty bool, emptyOnly bool) (bytes.B
 			itemBuff.WriteByte(stack)
 			itemBuff.Write(exp)
 			itemBuff.Write(padding)
-			itemBuff.Write(token)
-			itemBuff.Write([]byte{0x42, 0x00, 0x00, 0x00})
+
+			if i == len(items) {
+				itemBuff.Write([]byte{0x00, 0x00, 0x00, 0x00})
+			} else {
+				itemBuff.Write([]byte{0x42, 0x00, 0x00, 0x00})
+			}
+
 			itemBuff.WriteTo(&kitbag)
 			kitbagids.Write(id)
 
