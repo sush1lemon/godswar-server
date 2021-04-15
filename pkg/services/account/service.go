@@ -248,8 +248,35 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 	s.conn.Send([]byte{0x0C, 0x00, 0xB4, 0x27, 0x13, 0x27, 0x8D, 0x0B, 0x01, 0x00, 0x00, 0x00})
 }
 
-func (s service) DeleteAccountCharacter(packet *decode.Decode) {
+func (s service) DeleteAccountCharacter(packet decode.Decode) {
+	var request requests.DeleteCharRequest
+	reader := bytes.NewReader(packet.DecodedBuffer[:])
+	err := binary.Read(reader, binary.LittleEndian, &request)
+	if err != nil {
+		logger.BasicLog(err)
+		s.conn.Disconnect()
+	}
 
+	var cbase  account.CharacterBase
+	charname := utility.RemoveBlank(string(request.CharName[:]))
+
+	r := s.db.Collection("character_base").Find(db.Cond{"name" : charname, "server_id" : s.conn.ServerID})
+	if err != nil {
+		logger.BasicLog(err)
+	}
+
+	err = r.One(&cbase)
+	if err != nil {
+		logger.BasicLog(err)
+		s.conn.Disconnect()
+	}
+
+	go r.Delete()
+	go s.db.Collection("character_kitbag").Find(db.Cond{"user_id" : cbase.ID}).Delete()
+	s.conn.Character = nil
+	s.conn.CharacterBytes = nil
+	s.conn.Equip = nil
+	s.conn.Send([]byte{0x0C, 0x00, 0xB4, 0x27, 0x14, 0x27, 0xA4, 0x75,  0x08, 0x00, 0x00, 0x00})
 }
 
 func (s service) parseKitBag(bag string, getEmpty bool, emptyOnly bool) (bytes.Buffer, map[int]types.Item, bytes.Buffer) {

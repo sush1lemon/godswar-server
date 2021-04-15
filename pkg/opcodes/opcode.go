@@ -26,7 +26,7 @@ const (
 	MSG_RESPONSE_GAMESERVER         //·µ»ØÑ¡ÔñÓÎÏ··þÎñÆ÷IP
 	MSG_ROLE_INFO                   //½ÇÉ«ÐÅÏ¢
 	MSG_CREATE_ROLE         = 10003 //´´½¨½ÇÉ«
-	MSG_DELETE_ROLE                 //É¾³ý½ÇÉ«
+	MSG_DELETE_ROLE         = 10004        //É¾³ý½ÇÉ«
 	MSG_GAMESERVER_READY            //ÓÎÏ··þÎñÆ÷¾ÍÐ÷
 	MSG_ENTER_GAME          = 10006 //¿Í»§¶Ë¾ÍÐ÷×¼±¸½øÈëÓÎÏ·
 	MSG_CLIENT_READY                //¿Í»§¶Ë³õÊ¼»¯Íê±Ï

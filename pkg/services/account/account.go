@@ -11,6 +11,7 @@ type Service interface {
 	LoginFail(reason uint16)
 	GetAccountCharacters(packet *decode.Decode)
 	CreateAccountCharacter(packet *decode.Decode)
+	DeleteAccountCharacter(packet decode.Decode)
 }
 
 type service struct {

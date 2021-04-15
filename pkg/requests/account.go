@@ -13,10 +13,10 @@ type GetCharacterRequest struct {
 
 type CreateCharacterRequest struct {
 	CharName [32]byte
-	Unk      byte
+	Gender   byte
 	Camp     byte
 	Class    byte
-	Gender   byte
+	Unk      byte
 	Hair     byte
 	Face     byte
 	Unk1     [32]byte
@@ -29,4 +29,9 @@ type AuthRequest struct {
 	Password  [32]byte
 	Unk1      [4]byte
 	ClientMac [32]byte
+}
+
+type DeleteCharRequest struct {
+	Username [32]byte
+	CharName [32]byte
 }

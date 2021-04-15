@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 04, 2021 at 01:52 PM
+-- Generation Time: Apr 14, 2021 at 03:40 PM
 -- Server version: 10.4.14-MariaDB
 -- PHP Version: 7.4.9
 
@@ -30,6 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `character_base` (
   `id` int(4) UNSIGNED NOT NULL,
   `account_id` int(32) NOT NULL,
+  `server_id` int(11) DEFAULT NULL,
   `name` char(32) COLLATE utf8_unicode_ci NOT NULL,
   `gender` enum('female','male') COLLATE utf8_unicode_ci NOT NULL DEFAULT 'male',
   `GM` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
@@ -70,8 +71,11 @@ CREATE TABLE `character_base` (
 -- Dumping data for table `character_base`
 --
 
-INSERT INTO `character_base` (`id`, `account_id`, `name`, `gender`, `GM`, `camp`, `profession`, `fighter_job_lv`, `scholar_job_lv`, `fighter_job_exp`, `scholar_job_exp`, `curHP`, `curMP`, `status`, `belief`, `prestige`, `earl_rank`, `consortia`, `consortia_job`, `consortia_contribute`, `store_num`, `bag_num`, `hair_style`, `face_shap`, `Map`, `Pos_X`, `Pos_Z`, `Money`, `Stone`, `SkillPoint`, `SkillExp`, `MaxHP`, `MaxMP`, `Register_time`, `LastLogin_time`, `mutetime`) VALUES
-(1, 1, 'sush1', 'male', 1, 0, 0, 1, 0, 0, 0, 123456789, 177, 0, 0, 0, 0, 00, 0, 0, 10, 1, 0, 0, 1, -108.00000, -122.00000, 0, 0, 0000, 0000, 1368, 177, '2008-04-28 15:19:04', '0000-00-00 00:00:00', 0000);
+INSERT INTO `character_base` (`id`, `account_id`, `server_id`, `name`, `gender`, `GM`, `camp`, `profession`, `fighter_job_lv`, `scholar_job_lv`, `fighter_job_exp`, `scholar_job_exp`, `curHP`, `curMP`, `status`, `belief`, `prestige`, `earl_rank`, `consortia`, `consortia_job`, `consortia_contribute`, `store_num`, `bag_num`, `hair_style`, `face_shap`, `Map`, `Pos_X`, `Pos_Z`, `Money`, `Stone`, `SkillPoint`, `SkillExp`, `MaxHP`, `MaxMP`, `Register_time`, `LastLogin_time`, `mutetime`) VALUES
+(22, 2, 1, 'souf', 'male', 0, 1, 2, 1, 0, 0, 0, 1500, 177, 0, 0, 0, 0, 00, 0, 0, 0, 0, 54, 1, 1, 165.00000, -97.00000, 10000, 10, 0010, 0000, 1500, 177, '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0000),
+(25, 3, 1, 'soufflex', 'male', 0, 1, 0, 1, 0, 0, 0, 1500, 177, 0, 0, 0, 0, 00, 0, 0, 0, 0, 40, 2, 1, 165.00000, -97.00000, 10000, 10, 0010, 0000, 1500, 177, '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0000),
+(28, 1, 1, 'sush1', 'male', 0, 1, 1, 1, 0, 0, 0, 1500, 177, 0, 0, 0, 0, 00, 0, 0, 0, 0, 53, 0, 1, 165.00000, -97.00000, 10000, 10, 0010, 0000, 1500, 177, '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0000),
+(33, 4, 1, 'adada', 'male', 0, 1, 1, 1, 0, 0, 0, 1500, 177, 0, 0, 0, 0, 00, 0, 0, 0, 0, 53, 0, 1, 165.00000, -97.00000, 10000, 10, 0010, 0000, 1500, 177, '0000-00-00 00:00:00', '0000-00-00 00:00:00', 0000);
 
 --
 -- Indexes for dumped tables
@@ -84,7 +88,8 @@ ALTER TABLE `character_base`
   ADD PRIMARY KEY (`id`,`name`),
   ADD UNIQUE KEY `RoleName` (`name`),
   ADD KEY `Accounts` (`account_id`),
-  ADD KEY `index` (`id`);
+  ADD KEY `index` (`id`),
+  ADD KEY `server_ibfk_1` (`server_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -94,7 +99,7 @@ ALTER TABLE `character_base`
 -- AUTO_INCREMENT for table `character_base`
 --
 ALTER TABLE `character_base`
-  MODIFY `id` int(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(4) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- Constraints for dumped tables
@@ -104,7 +109,8 @@ ALTER TABLE `character_base`
 -- Constraints for table `character_base`
 --
 ALTER TABLE `character_base`
-  ADD CONSTRAINT `character_base_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`);
+  ADD CONSTRAINT `character_base_ibfk_1` FOREIGN KEY (`account_id`) REFERENCES `accounts` (`id`),
+  ADD CONSTRAINT `server_ibfk_1` FOREIGN KEY (`server_id`) REFERENCES `server` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

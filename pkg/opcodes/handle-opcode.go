@@ -50,6 +50,9 @@ func (h handler) HandleOPCode() ([]byte, error) {
 	case MSG_CREATE_ROLE:
 		h.backend.Account.CreateAccountCharacter(&h.decoded)
 		break
+	case MSG_DELETE_ROLE:
+		h.backend.Account.DeleteAccountCharacter(h.decoded)
+		break
 	case MSG_ENTER_GAME:
 		l, _ := h.rdb.Subscribe("GAME:MESSAGING", func(p decode.Decode) {
 			fmt.Println(hex.Dump(p.Buffer))
