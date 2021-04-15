@@ -8,7 +8,7 @@ Here you will find the incomplete source for the building of what it could poten
 #### Contribution
 If you are a Developer and if you would like to contribute to the project, please fork a copy and perform the changes, then apply for a PR and wait for validation and merge approval.
 
-Contact me at [discord](https://discord.gg/6ZAcUeCJ)
+Join our [discord](https://discord.gg/2rfFCfCfJh) server
 
 
 This version were at real early stages this are the features:
@@ -18,6 +18,7 @@ This version were at real early stages this are the features:
 * Packet Encryption / Decryption
 * **Game server**
     * Character creation
+    * Character deletion
 
 **All data sent from server are all placeholder**
 

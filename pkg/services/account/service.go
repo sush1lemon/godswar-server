@@ -145,17 +145,10 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 
 	name := utility.RemoveBlank(string(request.CharName[:]))
 	var gender string
-	var curMap int
 	if request.Gender == 0 {
 		gender = "female"
 	} else {
 		gender = "male"
-	}
-
-	if request.Camp == 1 {
-		curMap = 1
-	} else {
-		curMap = 2
 	}
 
 	cb := account.CharacterBase{
@@ -183,7 +176,7 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 		BagNum:              0,
 		HairStyle:           int(request.Hair),
 		FaceShape:           int(request.Face),
-		CurrentMap:          curMap,
+		CurrentMap:          int(request.Camp),
 		PosX:                165.00,
 		PosZ:                -97.00,
 		Money:               10000,
@@ -192,8 +185,8 @@ func (s service) CreateAccountCharacter(packet *decode.Decode) {
 		SkillExp:            0,
 		MaxHP:               1500,
 		MaxMP:               177,
-		RegisterTime:        "2021-04-14 21:56:10",
-		LastLoginTime:       "2021-04-14 21:56:26",
+		RegisterTime:        utility.Now(),
+		LastLoginTime:       utility.Now(),
 		MuteTime:            0000,
 	}
 
